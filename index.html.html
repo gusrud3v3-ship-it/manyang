@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>또박또박 읽기</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Jua&family=Gaegu:wght@700&family=Gowun+Dodum&display=swap" rel="stylesheet">
+<style>
+/* =========================================================================
+   또박또박 읽기 — 초등 학년별 소리내어 읽기 숙제 앱 (아이용)
+   ★ 바꾸기 쉬운 값은 <script> 맨 위 CONFIG 에 모아두었습니다.
+   ★ 교사용 결과 보기: 화면 우측 위 ⚙(선생님) → 스프레드시트 내보내기 / 구글시트 연동
+   ========================================================================= */
+:root{
+  --paper:#FFF7E9; --paper2:#FFEFD4;
+  --ink:#3B3024; --ink-soft:#7A6B55;
+  --coral:#FF6F61; --coral-deep:#E8503F;
+  --sun:#FFC247; --sun-deep:#F0A91E;
+  --leaf:#5BB97E; --leaf-deep:#3F9C62;
+  --sky:#6FB7E8;
+  --line:#ECDCBF; --card:#FFFFFF;
+  --shadow:0 6px 0 #E7D4B0, 0 14px 28px rgba(120,90,40,.16);
+  --shadow-sm:0 3px 0 #E7D4B0, 0 6px 14px rgba(120,90,40,.14);
+}
+*{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+html,body{margin:0;padding:0;}
+body{font-family:"Gowun Dodum","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  background:radial-gradient(circle at 12% 8%,#FFE9C2 0 16px,transparent 17px),
+    radial-gradient(circle at 88% 22%,#FFE0C0 0 12px,transparent 13px),var(--paper);
+  color:var(--ink); min-height:100vh; line-height:1.5;}
+.jua{font-family:"Jua",sans-serif;}
+.app{max-width:540px; margin:0 auto; padding:16px 16px 44px; min-height:100vh;}
+.screen{display:none; animation:pop .28s ease;}
+.screen.active{display:block;}
+@keyframes pop{from{opacity:0;transform:translateY(10px) scale(.98);} to{opacity:1;transform:none;}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;}}
+
+.topbar{display:flex; align-items:center; gap:10px; margin-bottom:14px;}
+.back{background:var(--card); border:2px solid var(--line); border-radius:16px;
+  width:46px;height:46px;font-size:22px;cursor:pointer; box-shadow:var(--shadow-sm);}
+.back:active{transform:translateY(2px);}
+.title{font-family:"Jua"; font-size:26px; line-height:1.15;}
+.subtitle{color:var(--ink-soft); font-size:15px;}
+.card{background:var(--card); border:3px solid var(--line); border-radius:24px;
+  padding:18px; box-shadow:var(--shadow); margin-bottom:14px;}
+.btn{font-family:"Jua"; border:none; border-radius:20px; padding:16px 18px; font-size:20px;
+  cursor:pointer; width:100%; box-shadow:var(--shadow-sm); transition:transform .08s;}
+.btn:active{transform:translateY(3px); box-shadow:0 1px 0 #E7D4B0;}
+.btn.primary{background:var(--coral); color:#fff; border-bottom:4px solid var(--coral-deep);}
+.btn.go{background:var(--leaf); color:#fff; border-bottom:4px solid var(--leaf-deep);}
+.btn.sun{background:var(--sun); color:#5A3E00; border-bottom:4px solid var(--sun-deep);}
+.btn.ghost{background:#fff; color:var(--ink); border:2px solid var(--line); box-shadow:var(--shadow-sm);}
+.btn:disabled{opacity:.5; cursor:not-allowed;}
+.input{font-family:inherit; font-size:18px; width:100%; padding:14px 16px;
+  border:3px solid var(--line); border-radius:18px; background:#FFFDF8; color:var(--ink);}
+.input:focus{outline:none; border-color:var(--sun);}
+label.lab{font-family:"Jua"; font-size:17px; display:block; margin:4px 2px 8px;}
+.mini{font-size:13px; color:var(--ink-soft);}
+.row{display:flex; gap:10px;}
+.gear{position:absolute; top:0; right:0; background:transparent; border:none; cursor:pointer;
+  font-size:20px; padding:6px 8px; opacity:.6;}
+
+/* 학년 선택 */
+.grade-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:10px;}
+.gbtn{font-family:"Jua"; font-size:20px; padding:18px 6px; border-radius:18px; cursor:pointer;
+  background:#fff; border:3px solid var(--line); box-shadow:var(--shadow-sm);}
+.gbtn small{display:block; font-size:11px; color:var(--ink-soft); margin-top:4px; font-family:"Gowun Dodum";}
+.gbtn.sel{border-color:var(--sun); background:var(--paper2);}
+
+/* 홈 */
+.hero{display:flex; align-items:center; gap:12px; margin-bottom:6px;}
+.worm{font-size:46px; filter:drop-shadow(0 4px 0 rgba(0,0,0,.06));}
+.bigstart{font-family:"Jua"; font-size:26px; padding:26px; background:var(--coral); color:#fff;
+  border:none; border-radius:26px; width:100%; cursor:pointer; box-shadow:0 8px 0 var(--coral-deep),0 16px 30px rgba(232,80,63,.25);}
+.bigstart:active{transform:translateY(4px); box-shadow:0 4px 0 var(--coral-deep);}
+.statline{display:flex; justify-content:space-around; text-align:center; margin-top:4px;}
+.statline .v{font-family:"Jua"; font-size:24px;}
+.statline .l{font-size:12px; color:var(--ink-soft);}
+.track{height:16px; background:var(--paper2); border-radius:999px; overflow:hidden; border:2px solid var(--line);}
+.fill{height:100%; border-radius:999px; transition:width .9s cubic-bezier(.2,.8,.2,1);}
+
+/* 문항 카드 */
+.item{display:flex; gap:12px; align-items:flex-start; padding:14px 4px; border-bottom:2px dotted var(--line);}
+.item:last-child{border-bottom:none;}
+.item .num{flex:0 0 32px; height:32px; background:var(--sun); color:#5A3E00; border-radius:50%;
+  font-family:"Jua"; display:flex; align-items:center; justify-content:center; font-size:16px;}
+.item .tx{font-size:21px; line-height:1.7; word-break:keep-all;}
+.item.read .tx{color:var(--leaf-deep);}
+.item.warn{background:#FFF2EC; border-radius:12px;}
+.item .mk{margin-left:auto; font-size:22px;}
+
+/* 녹음 */
+.recwrap{text-align:center;}
+.timer{font-family:"Jua"; font-size:34px; letter-spacing:1px;}
+.mic{width:124px;height:124px;border-radius:50%; border:none; margin:8px auto 6px; display:block;
+  background:var(--coral); color:#fff; font-size:46px; cursor:pointer;
+  box-shadow:0 8px 0 var(--coral-deep),0 16px 30px rgba(232,80,63,.35);}
+.mic.rec{animation:pulse 1.4s infinite;}
+.mic:active{transform:translateY(4px); box-shadow:0 4px 0 var(--coral-deep);}
+@keyframes pulse{0%,100%{box-shadow:0 8px 0 var(--coral-deep),0 0 0 0 rgba(255,111,97,.5);}
+  50%{box-shadow:0 8px 0 var(--coral-deep),0 0 0 18px rgba(255,111,97,0);}}
+.meter{display:flex; gap:4px; justify-content:center; align-items:flex-end; height:46px; margin:6px 0;}
+.meter i{width:7px; background:var(--leaf); border-radius:4px; height:6px; transition:height .08s;}
+.live{min-height:38px; background:#FFFDF8; border:2px dashed var(--line); border-radius:14px;
+  padding:8px 12px; font-size:15px; color:var(--ink-soft); text-align:left;}
+.hint{font-size:15px; color:var(--ink-soft); margin-top:6px;}
+.note{background:#EFF7FF; border:2px solid #CDE6FA; border-radius:14px; padding:10px 12px;
+  font-size:13px; color:#3A5A72; margin-top:10px;}
+
+/* 결과 */
+.scorebig{font-family:"Jua"; font-size:72px; line-height:1; text-align:center; color:var(--coral-deep);}
+.stars{text-align:center; font-size:30px; letter-spacing:4px;}
+.ppbox{text-align:center; background:linear-gradient(180deg,#FFF7E0,#FFEFC6);
+  border:3px solid var(--sun); border-radius:22px; padding:16px; margin-top:6px;}
+.ppbig{font-family:"Jua"; font-size:40px; color:var(--sun-deep);}
+.bonus{display:inline-block; background:var(--coral); color:#fff; font-family:"Jua";
+  border-radius:999px; padding:3px 14px; font-size:15px; margin-top:4px;}
+
+/* 도장첩 */
+.stamp-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:14px;}
+.stamp{aspect-ratio:1; border-radius:16px; background:#FFFDF8; border:2px dashed var(--line);
+  display:flex; align-items:center; justify-content:center;}
+.stamp.got{border:none; background:transparent;}
+.stamp.got .ink{width:80px;height:80px;border-radius:50%; border:4px solid var(--coral-deep);
+  color:var(--coral-deep); font-family:"Gaegu"; display:flex; flex-direction:column; align-items:center;
+  justify-content:center; transform:rotate(-8deg); box-shadow:inset 0 0 0 3px #fff,inset 0 0 0 6px var(--coral-deep); opacity:.86;}
+.stamp.got .ink .bk{font-size:30px; line-height:1;}
+.stamp.got .ink .lb{font-size:11px; margin-top:2px;}
+.stamp-pop{animation:press .6s ease;}
+@keyframes press{0%{transform:rotate(-8deg) scale(2.4);opacity:0;}55%{transform:rotate(-8deg) scale(.86);opacity:1;}
+  75%{transform:rotate(-8deg) scale(1.08);}100%{transform:rotate(-8deg) scale(1);}}
+
+/* 모달 / 토스트 */
+.modal{position:fixed; inset:0; background:rgba(50,38,20,.45); display:none;
+  align-items:center; justify-content:center; padding:18px; z-index:50;}
+.modal.show{display:flex;}
+.sheet{background:var(--paper); border:4px solid var(--sky); border-radius:26px; padding:20px;
+  max-width:460px; width:100%; box-shadow:var(--shadow); max-height:88vh; overflow:auto;}
+.toast{position:fixed; left:50%; bottom:24px; transform:translateX(-50%) translateY(20px);
+  background:var(--ink); color:#fff; padding:12px 20px; border-radius:999px; font-family:"Jua";
+  opacity:0; transition:.25s; z-index:60; font-size:15px;}
+.toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+pre.code{background:#2B2620; color:#F4ECDD; border-radius:14px; padding:12px; font-size:11px;
+  overflow:auto; white-space:pre; line-height:1.5; max-height:200px;}
+.hidden{display:none!important;}
+.footer{text-align:center; color:var(--ink-soft); font-size:12px; margin-top:18px;}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- 1) 첫 설정: 이름 + 학년 -->
+  <section id="setup" class="screen active">
+    <div class="hero" style="margin-top:8px;">
+      <span class="worm">🐛📖</span>
+      <div><div class="title">또박또박 읽기</div>
+        <div class="subtitle">먼저 내 이름과 학년을 정해요</div></div>
+    </div>
+    <div class="card">
+      <label class="lab">이름</label>
+      <input class="input" id="setName" placeholder="이름을 적어요" maxlength="10" autocomplete="off">
+      <label class="lab" style="margin-top:14px;">학년</label>
+      <div class="grade-grid" id="gradePick"></div>
+    </div>
+    <button class="btn go" id="setupSave">시작하기 ▶</button>
+  </section>
+
+  <!-- 2) 홈 -->
+  <section id="home" class="screen">
+    <div style="position:relative;">
+      <button class="gear" id="gearBtn" title="선생님">⚙️</button>
+      <div class="hero">
+        <span class="worm" id="homeFace">🐯</span>
+        <div><div class="title" id="homeHi">안녕!</div>
+          <div class="subtitle" id="homeDate"></div></div>
+      </div>
+    </div>
+    <button class="bigstart" id="startRead">📖 오늘 읽기 시작</button>
+    <div class="card" style="margin-top:14px;">
+      <div class="statline">
+        <div><div class="v" id="homePP">0</div><div class="l">페이지점수</div></div>
+        <div><div class="v" id="homeStamp">0</div><div class="l">책 도장</div></div>
+        <div><div class="v" id="homeStreak">0</div><div class="l">읽은 날</div></div>
+      </div>
+      <div style="margin-top:14px;">
+        <div style="display:flex; justify-content:space-between; font-family:'Jua'; font-size:13px;">
+          <span>다음 도장까지</span><span id="homeGoal">0 / 50</span></div>
+        <div class="track" style="margin-top:6px;"><div class="fill" id="homeFill" style="width:0%; background:var(--leaf);"></div></div>
+      </div>
+    </div>
+    <button class="btn ghost" id="openStamp">🏆 내 도장첩 보기</button>
+    <div class="footer">책 도장 5개를 모아보자! 🌟</div>
+  </section>
+
+  <!-- 3) 읽기 / 녹음 -->
+  <section id="read" class="screen">
+    <div class="topbar"><button class="back" data-back="home">←</button>
+      <div><div class="title">오늘의 10문장</div>
+        <div class="subtitle" id="readWho"></div></div></div>
+    <div class="card" id="itemBox"></div>
+    <div class="card recwrap">
+      <div class="timer" id="timer">00:00</div>
+      <div class="meter" id="meter"></div>
+      <button class="mic" id="micBtn" aria-label="녹음 시작">🎙️</button>
+      <div class="hint" id="recHint">버튼을 누르고 1번부터 또박또박 읽어요</div>
+      <div class="live hidden" id="liveText"></div>
+      <button class="btn primary hidden" id="stopBtn" style="margin-top:12px;">⏹️ 다 읽었어요 (멈춤)</button>
+    </div>
+    <div class="note" id="micNote" style="display:none;"></div>
+  </section>
+
+  <!-- 4) 결과 -->
+  <section id="result" class="screen">
+    <div class="topbar"><div class="title">채점 결과</div></div>
+    <div class="card">
+      <div class="scorebig" id="scoreNum">0</div>
+      <div class="stars" id="scoreStars"></div>
+      <div style="text-align:center; font-family:'Jua'; font-size:18px; margin-top:6px;" id="scoreMsg"></div>
+    </div>
+    <div class="card">
+      <label class="lab">문장 확인 🔍</label>
+      <div id="itemResult"></div>
+    </div>
+    <div class="ppbox">
+      <div style="font-family:'Jua'; font-size:16px;">받은 페이지점수</div>
+      <div class="ppbig"><span id="ppGain">+0</span> 점</div>
+      <div id="bonusTag"></div>
+      <div style="margin-top:10px;">
+        <div style="display:flex; justify-content:space-between; font-family:'Jua'; font-size:13px;">
+          <span>다음 도장까지</span><span id="prog50label">0 / 50</span></div>
+        <div class="track" style="margin-top:6px;"><div class="fill" id="prog50fill" style="width:0%; background:var(--leaf);"></div></div>
+      </div>
+    </div>
+    <div class="row" style="margin-top:12px;">
+      <button class="btn ghost" id="replayBtn" style="flex:1;">🔊 다시 듣기</button>
+      <button class="btn sun" id="doneBtn" style="flex:1.4;">확인 ✅</button>
+    </div>
+    <audio id="player" class="hidden"></audio>
+  </section>
+
+  <!-- 5) 도장첩 -->
+  <section id="stampbook" class="screen">
+    <div class="topbar"><button class="back" data-back="home">←</button>
+      <div><div class="title" id="sbName">도장첩</div>
+        <div class="subtitle" id="sbSub"></div></div></div>
+    <div class="card"><div class="stamp-grid" id="stampGrid"></div></div>
+    <button class="btn go" data-back="home">홈으로 ▶</button>
+  </section>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- 선생님 패널 -->
+<div class="modal" id="teacherModal">
+  <div class="sheet">
+    <div class="title" style="margin-bottom:4px;">👩‍🏫 선생님 보기</div>
+    <div class="mini" style="margin-bottom:12px;">아이가 제출한 결과를 스프레드시트로 확인해요.</div>
+
+    <div class="card" style="box-shadow:none; margin-bottom:12px;">
+      <label class="lab">① 결과 내보내기 (엑셀·구글시트)</label>
+      <div class="mini" style="margin-bottom:10px;">제출 기록을 CSV 파일로 내려받아요. 엑셀이나 구글 스프레드시트에서 바로 열려요.</div>
+      <button class="btn go" id="exportCsv">📄 스프레드시트로 내보내기 (.csv)</button>
+    </div>
+
+    <div class="card" style="box-shadow:none; margin-bottom:12px;">
+      <label class="lab">② 구글 시트로 자동 보내기 (선택)</label>
+      <div class="mini" style="margin-bottom:8px;">아이가 제출할 때마다 선생님 구글 시트에 한 줄씩 자동으로 쌓여요. Apps Script 웹앱 주소를 붙여넣으세요.</div>
+      <input class="input" id="sheetUrl" placeholder="https://script.google.com/macros/s/..../exec" style="font-size:14px;">
+      <button class="btn ghost" id="saveUrl" style="margin-top:8px;">주소 저장</button>
+      <details style="margin-top:10px;">
+        <summary class="mini" style="cursor:pointer;">설정 방법 (구글 시트 → 확장프로그램 → Apps Script에 붙여넣기)</summary>
+        <pre class="code" id="gscode"></pre>
+        <button class="btn ghost mini" id="copyCode" style="font-size:13px;">코드 복사</button>
+      </details>
+    </div>
+
+    <div class="row">
+      <button class="btn ghost" id="editProfile" style="flex:1;">이름·학년 바꾸기</button>
+      <button class="btn ghost" id="teacherClose" style="flex:1;">닫기</button>
+    </div>
+    <button class="mini" id="resetAll" style="background:none;border:none;color:#C0392B;margin-top:12px;cursor:pointer;width:100%;">모든 기록 지우기</button>
+  </div>
+</div>
+
+<script>
+/* =================================================================
+   ★★ 선생님이 바꾸기 쉬운 설정 (CONFIG) ★★
+   ================================================================= */
+const CONFIG = {
+  pagePoints:{ p80:5, p60:3, low:1, perfectBonus:5 }, // 100점 = 5 + 보너스5 = 10점
+  stampGoal:50,                                       // 50점마다 책 도장 1개
+  weights:{ accuracy:55, clarity:25, complete:20 },   // 점수 배점 (합 100)
+  silence:0.025,                                      // 이보다 작은 소리는 '쉼'
+  fuzzy:0.34,                                         // 단어 일치 허용 오차 (작을수록 엄격)
+};
+const FACES=["🐯","🐰","🦊","🐻","🐱","🐥"];
+/* 10개의 짧은 이야기. 학년 G면 각 이야기의 앞 G문장을 읽어요.
+   1학년=1문장, 2학년=2문장 … 6학년=6문장. 문장은 더 추가/교체해도 됩니다. */
+const PASSAGES=[
+ ["우리 집 강아지는 이름이 콩이예요.","콩이는 꼬리를 살랑살랑 흔들어요.","아침마다 나를 보고 멍멍 짖어요.","함께 공원에서 공을 가지고 놀아요.","콩이는 달리기를 정말 빠르게 잘해요.","나는 우리 콩이를 아주 많이 사랑해요."],
+ ["나는 가방을 메고 학교에 가요.","길에서 친구를 만나 함께 걸어요.","노란 은행잎이 바람에 떨어졌어요.","우리는 떨어진 잎을 주워 모았어요.","교실에 들어서니 선생님이 웃어 주셨어요.","오늘도 즐거운 하루가 시작되었어요."],
+ ["아침부터 비가 주룩주룩 내렸어요.","나는 노란 우산을 펼쳐 들었어요.","빗방울이 우산 위에서 통통 튀었어요.","물웅덩이를 폴짝폴짝 건너뛰었어요.","신발이 조금 젖었지만 기분은 좋았어요.","집에 와서 따뜻한 코코아를 마셨어요."],
+ ["우리 반은 작은 텃밭을 가꿔요.","상추와 토마토 씨앗을 심었어요.","날마다 물을 주며 자라기를 기다렸어요.","며칠 뒤 초록 싹이 쏙 올라왔어요.","토마토는 점점 빨갛게 익어 갔어요.","우리는 직접 기른 채소를 나눠 먹었어요."],
+ ["깜깜한 밤하늘에 별이 떠 있어요.","별들이 반짝반짝 빛을 내었어요.","나는 마당에 누워 하늘을 보았어요.","커다란 보름달이 환하게 떠올랐어요.","달 옆으로 별똥별이 휙 지나갔어요.","나는 두 손을 모으고 소원을 빌었어요."],
+ ["나는 도서관에서 책을 빌렸어요.","조용한 곳에서 천천히 책을 읽었어요.","재미있는 이야기에 푹 빠져들었어요.","주인공이 용감하게 모험을 떠났어요.","마지막 장을 덮으니 마음이 따뜻했어요.","다음에는 어떤 책을 읽을지 기대돼요."],
+ ["우리 가족은 바닷가로 여행을 갔어요.","파도가 철썩철썩 모래밭으로 밀려왔어요.","나는 맨발로 모래 위를 걸었어요.","작은 조개껍데기를 주워 모았어요.","동생과 함께 커다란 모래성을 쌓았어요.","노을이 지는 바다는 정말 아름다웠어요."],
+ ["할머니 댁에서 김치를 담갔어요.","빨간 양념을 배추에 골고루 발랐어요.","매콤한 냄새가 부엌에 가득했어요.","나도 앞치마를 두르고 도와 드렸어요.","갓 담근 김치를 한 입 맛보았어요.","온 가족이 둘러앉아 웃으며 먹었어요."],
+ ["밤새 하얀 눈이 소복이 쌓였어요.","온 세상이 눈으로 하얗게 변했어요.","나는 장갑을 끼고 밖으로 나갔어요.","친구들과 눈사람을 함께 만들었어요.","동그란 눈을 굴려 머리를 올렸어요.","마지막으로 당근 코를 콕 박았어요."],
+ ["오늘은 기다리던 가을 운동회예요.","운동장에 만국기가 펄럭였어요.","나는 청군이 되어 힘껏 달렸어요.","친구들이 큰 소리로 응원해 주었어요.","줄다리기에서 우리 편이 이겼어요.","땀을 흘렸지만 정말 신나는 하루였어요."]
+];
+
+/* ---------- 저장소 (window.storage 우선, 없으면 메모리) ---------- */
+const KEY="ttbk2_v1";
+let mem={};
+const hasStore=(typeof window!=='undefined' && window.storage && window.storage.get);
+async function load(){ try{
+  if(hasStore){ const r=await window.storage.get(KEY); return r&&r.value?JSON.parse(r.value):null; }
+  return mem[KEY]||null;
+}catch(e){ return mem[KEY]||null; } }
+async function persist(){ try{
+  if(hasStore){ await window.storage.set(KEY, JSON.stringify(DATA), false); } else { mem[KEY]=DATA; }
+}catch(e){ mem[KEY]=DATA; } }
+
+let DATA={ profile:null, pagePoints:0, log:[], sheetUrl:"" };
+let cur={ items:[] };
+let rec={};
+let speechSupported=false;
+const todayKey=()=>{const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};
+const nowTime=()=>new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'});
+
+function show(id){ document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('active',s.id===id)); window.scrollTo(0,0); }
+document.querySelectorAll('[data-back]').forEach(b=>b.onclick=()=>{ stopEverything(); show(b.dataset.back); });
+function toast(m){ const t=document.getElementById('toast'); t.textContent=m; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),1900); }
+function clamp(v,a,b){ return Math.max(a,Math.min(b,v)); }
+function esc(s){ return s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+/* ---------- 초기화 ---------- */
+let pickedGrade=1;
+(async function init(){
+  const saved=await load();
+  if(saved) DATA=Object.assign(DATA,saved);
+  // 학년 선택 버튼
+  const gp=document.getElementById('gradePick'); gp.innerHTML='';
+  for(let g=1;g<=6;g++){ const b=document.createElement('button'); b.className='gbtn'+(g===1?' sel':'');
+    b.innerHTML=`${g}학년<small>${g}줄 문장</small>`;
+    b.onclick=()=>{ pickedGrade=g; [...gp.children].forEach(c=>c.classList.remove('sel')); b.classList.add('sel'); };
+    gp.appendChild(b); }
+  document.getElementById('gscode').textContent=APPS_SCRIPT;
+  if(DATA.profile){ goHome(); } else { show('setup'); }
+})();
+
+document.getElementById('setupSave').onclick=async()=>{
+  const n=document.getElementById('setName').value.trim();
+  if(!n){ toast('이름을 적어주세요'); return; }
+  DATA.profile={ name:n, grade:pickedGrade, face:FACES[Math.floor(Math.random()*FACES.length)] };
+  await persist(); goHome();
+};
+
+/* ---------- 홈 ---------- */
+function goHome(){
+  const p=DATA.profile;
+  document.getElementById('homeFace').textContent=p.face||'🙂';
+  document.getElementById('homeHi').textContent=`${p.name}, 안녕!`;
+  document.getElementById('homeDate').textContent=`${p.grade}학년 · ${todayKey()}`;
+  const stamps=Math.floor(DATA.pagePoints/CONFIG.stampGoal);
+  const into=DATA.pagePoints%CONFIG.stampGoal;
+  const days=new Set(DATA.log.map(r=>r.date)).size;
+  document.getElementById('homePP').textContent=DATA.pagePoints;
+  document.getElementById('homeStamp').textContent=stamps;
+  document.getElementById('homeStreak').textContent=days;
+  document.getElementById('homeGoal').textContent=`${into} / ${CONFIG.stampGoal}`;
+  setTimeout(()=>{ document.getElementById('homeFill').style.width=(into/CONFIG.stampGoal*100)+'%'; },100);
+  show('home');
+}
+document.getElementById('startRead').onclick=startToday;
+document.getElementById('openStamp').onclick=openStampbook;
+
+/* 오늘의 문항 만들기 (학년 길이만큼 + 날짜로 순서 섞기) */
+function buildItems(){
+  const g=DATA.profile.grade;
+  const seed=[...todayKey()].reduce((a,c)=>a+c.charCodeAt(0),0);
+  const order=[...PASSAGES.keys()].sort((a,b)=>((a*97+seed)%10)-((b*97+seed)%10));
+  cur.items=order.map(i=>({ no:0, text:PASSAGES[i].slice(0,g).join(' ') }));
+  cur.items.forEach((it,idx)=>it.no=idx+1);
+}
+function startToday(){
+  buildItems();
+  document.getElementById('readWho').textContent=`${DATA.profile.name} · ${DATA.profile.grade}학년`;
+  const box=document.getElementById('itemBox'); box.innerHTML='';
+  cur.items.forEach(it=>{ const row=document.createElement('div'); row.className='item';
+    row.innerHTML=`<div class="num">${it.no}</div><div class="tx">${esc(it.text)}</div><div class="mk"></div>`;
+    box.appendChild(row); });
+  resetRecUI(); show('read');
+}
+
+/* ---------- 녹음 ---------- */
+function resetRecUI(){
+  document.getElementById('timer').textContent='00:00';
+  document.getElementById('recHint').textContent='버튼을 누르고 1번부터 또박또박 읽어요';
+  document.getElementById('liveText').classList.add('hidden'); document.getElementById('liveText').textContent='';
+  document.getElementById('stopBtn').classList.add('hidden');
+  const m=document.getElementById('micBtn'); m.classList.remove('rec'); m.textContent='🎙️';
+  document.getElementById('micNote').style.display='none';
+  const mt=document.getElementById('meter'); mt.innerHTML=''; for(let i=0;i<13;i++) mt.appendChild(document.createElement('i'));
+}
+document.getElementById('micBtn').onclick=()=>{ if(!rec.recording) startRecording(); };
+document.getElementById('stopBtn').onclick=()=>stopRecording();
+
+async function startRecording(){
+  let stream;
+  try{ stream=await navigator.mediaDevices.getUserMedia({audio:true}); }
+  catch(e){ const n=document.getElementById('micNote'); n.style.display='block';
+    n.innerHTML='🎤 마이크를 쓸 수 없어요. <b>크롬(Chrome)</b>에서 열고 마이크 사용을 <b>허용</b>해 주세요.'; return; }
+  rec={ recording:true, stream, chunks:[], finalText:'', startT:Date.now(), volSamples:[], activeFrames:0, totalFrames:0 };
+  try{ rec.mr=new MediaRecorder(stream); rec.mr.ondataavailable=e=>{ if(e.data.size>0) rec.chunks.push(e.data); }; rec.mr.start(); }catch(e){}
+  try{ rec.ctx=new (window.AudioContext||window.webkitAudioContext)();
+    const src=rec.ctx.createMediaStreamSource(stream); rec.analyser=rec.ctx.createAnalyser(); rec.analyser.fftSize=1024;
+    src.connect(rec.analyser); rec.buf=new Uint8Array(rec.analyser.fftSize); rec.metering=true; meterLoop(); }catch(e){}
+  startSpeech();
+  const m=document.getElementById('micBtn'); m.classList.add('rec'); m.textContent='👂';
+  document.getElementById('recHint').textContent='듣고 있어요… 큰 소리로 또박또박!';
+  document.getElementById('stopBtn').classList.remove('hidden');
+  document.getElementById('liveText').classList.remove('hidden');
+  rec.timerId=setInterval(()=>{ const s=Math.floor((Date.now()-rec.startT)/1000);
+    document.getElementById('timer').textContent=String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0'); },250);
+}
+function meterLoop(){
+  if(!rec.metering) return;
+  rec.analyser.getByteTimeDomainData(rec.buf);
+  let sum=0; for(let i=0;i<rec.buf.length;i++){ const d=(rec.buf[i]-128)/128; sum+=d*d; }
+  const rms=Math.sqrt(sum/rec.buf.length);
+  rec.totalFrames++; if(rms>CONFIG.silence){ rec.activeFrames++; rec.volSamples.push(rms); }
+  const bars=document.getElementById('meter').children; const lit=Math.round(Math.min(1,rms*6)*bars.length);
+  for(let i=0;i<bars.length;i++){ bars[i].style.height=(6+(i<lit?(8+Math.random()*34):0))+'px';
+    bars[i].style.background=i<lit?(i>bars.length-4?'var(--coral)':'var(--leaf)'):'var(--paper2)'; }
+  rec.raf=requestAnimationFrame(meterLoop);
+}
+function startSpeech(){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){ speechSupported=false; const n=document.getElementById('micNote'); n.style.display='block';
+    n.innerHTML='ℹ️ 이 브라우저는 발음 자동 확인이 어려워요. <b>크롬</b>에서 열면 어느 문장에서 틀렸는지까지 확인돼요. (녹음·제출은 됩니다)'; return; }
+  speechSupported=true;
+  const r=new SR(); r.lang='ko-KR'; r.continuous=true; r.interimResults=true;
+  r.onresult=e=>{ let interim='';
+    for(let i=e.resultIndex;i<e.results.length;i++){ const res=e.results[i];
+      if(res.isFinal) rec.finalText+=' '+res[0].transcript; else interim+=res[0].transcript; }
+    document.getElementById('liveText').textContent=(rec.finalText+' '+interim).trim()||'…'; };
+  r.onend=()=>{ if(rec.recording){ try{ r.start(); }catch(e){} } };
+  r.onerror=()=>{};
+  rec.speech=r; try{ r.start(); }catch(e){}
+}
+function stopEverything(){ if(rec.recording) stopRecording(true); }
+function stopRecording(silent){
+  if(!rec.recording) return;
+  rec.recording=false; rec.metering=false; clearInterval(rec.timerId);
+  if(rec.raf) cancelAnimationFrame(rec.raf);
+  if(rec.speech){ try{ rec.speech.stop(); }catch(e){} }
+  const finalize=()=>{
+    if(rec.chunks&&rec.chunks.length){ rec.blob=new Blob(rec.chunks,{type:rec.chunks[0].type||'audio/webm'}); rec.url=URL.createObjectURL(rec.blob); }
+    try{ rec.stream.getTracks().forEach(t=>t.stop()); }catch(e){}
+    try{ rec.ctx&&rec.ctx.close(); }catch(e){}
+    if(!silent) grade();
+  };
+  if(rec.mr&&rec.mr.state!=='inactive'){ rec.mr.onstop=finalize; try{ rec.mr.stop(); }catch(e){ finalize(); } }
+  else finalize();
+}
+
+/* ---------- 채점 (녹음 글자 vs 학년별 문항) ---------- */
+function norm(w){ return (w||'').toLowerCase().replace(/[^가-힣ㄱ-ㅎㅏ-ㅣa-z0-9]/g,''); }
+function lev(a,b){ const m=a.length,n=b.length; if(!m)return n; if(!n)return m;
+  const dp=Array.from({length:m+1},(_,i)=>[i,...Array(n).fill(0)]);
+  for(let j=0;j<=n;j++)dp[0][j]=j;
+  for(let i=1;i<=m;i++)for(let j=1;j<=n;j++){ const c=a[i-1]===b[j-1]?0:1;
+    dp[i][j]=Math.min(dp[i-1][j]+1,dp[i][j-1]+1,dp[i-1][j-1]+c);} return dp[m][n]; }
+function wmatch(t,r){ if(!t||!r)return false; if(t===r)return true;
+  if(t.length<=2) return lev(t,r)<=1&&Math.abs(t.length-r.length)<=1;
+  return (lev(t,r)/Math.max(t.length,r.length))<=CONFIG.fuzzy; }
+
+function grade(){
+  const items=cur.items, W=CONFIG.weights;
+  const recWords=(rec.finalText||'').split(/\s+/).map(norm).filter(Boolean);
+  const avgVol=rec.volSamples.length?rec.volSamples.reduce((a,b)=>a+b,0)/rec.volSamples.length:0;
+  const clarityVol=clamp((avgVol-0.015)/(0.08-0.015),0,1);
+  let per=[], accSum=0, done=0, allMissed=[];
+  const totalTW=items.reduce((a,it)=>a+it.text.split(/\s+/).filter(Boolean).length,0);
+  let score, canCheck, clarityPct;
+
+  if(speechSupported){
+    items.forEach(it=>{ const tw=it.text.split(/\s+/).map(norm).filter(Boolean); const missed=[]; let hit=0;
+      tw.forEach(w=>{ if(recWords.some(rw=>wmatch(w,rw))) hit++; else missed.push(w); });
+      const cov=tw.length?hit/tw.length:1; accSum+=cov; if(cov>=0.5) done++;
+      if(cov<0.8) allMissed.push(...missed.slice(0,3));
+      per.push({no:it.no, text:it.text, cov, missed}); });
+    const accuracy=accSum/items.length;
+    const recogRate=clamp(recWords.length/Math.max(1,totalTW),0,1);
+    const clarity=0.5*clarityVol+0.5*recogRate;
+    const complete=done/items.length;
+    score=Math.round(W.accuracy*accuracy+W.clarity*clarity+W.complete*complete);
+    clarityPct=Math.round(clarity*100); canCheck=true;
+  } else {
+    const durFactor=clamp(rec.totalFrames/60/40,0,1);
+    const activeRatio=rec.totalFrames?rec.activeFrames/rec.totalFrames:0;
+    const clarity=0.6*clarityVol+0.4*clamp(activeRatio/0.4,0,1);
+    score=Math.min(88,Math.round((W.accuracy*0.78+W.clarity)*clarity+W.complete*durFactor));
+    per=items.map(it=>({no:it.no,text:it.text,cov:null,missed:[]}));
+    clarityPct=Math.round(clarity*100); canCheck=false;
+  }
+  score=clamp(score,0,100);
+
+  // 페이지점수
+  const P=CONFIG.pagePoints;
+  const base=score>=80?P.p80:score>=60?P.p60:P.low;
+  const bonus=score===100?P.perfectBonus:0;
+  const gain=base+bonus;
+
+  const before=DATA.pagePoints; DATA.pagePoints+=gain;
+  const newStamp=Math.floor(DATA.pagePoints/CONFIG.stampGoal)>Math.floor(before/CONFIG.stampGoal);
+  const wrongItems=per.filter(p=>p.cov!==null&&p.cov<0.8).map(p=>p.no);
+  const wrongText=per.filter(p=>p.cov!==null&&p.cov<0.8).map(p=>`${p.no}번`).join(' ');
+
+  const rowRec={ date:todayKey(), time:nowTime(), grade:DATA.profile.grade, name:DATA.profile.name,
+    score, gain, cum:DATA.pagePoints, stamps:Math.floor(DATA.pagePoints/CONFIG.stampGoal),
+    clarity:clarityPct, wrongItems:wrongItems.join(' '), wrongText, wrongWords:[...new Set(allMissed)].slice(0,8).join(' '),
+    checked:canCheck };
+  DATA.log.unshift(rowRec);
+  persist();
+  sendToSheet(rowRec);
+
+  renderResult({score, per, gain, base, bonus, canCheck, newStamp});
+}
+
+/* ---------- 결과 화면 ---------- */
+function renderResult(R){
+  const el=document.getElementById('scoreNum'); let n=0;
+  const tick=setInterval(()=>{ n+=Math.max(1,Math.round(R.score/22)); if(n>=R.score){n=R.score; clearInterval(tick);} el.textContent=n; },28);
+  const st=R.score>=90?5:R.score>=75?4:R.score>=60?3:R.score>=40?2:1;
+  document.getElementById('scoreStars').textContent='⭐'.repeat(st)+'☆'.repeat(5-st);
+  document.getElementById('scoreMsg').textContent=
+    R.score>=90?'정말 또박또박 잘 읽었어요! 🎉':R.score>=75?'아주 잘했어요! 👏':
+    R.score>=60?'잘 읽었어요! 조금만 더! 😊':'천천히 다시 한 번 읽어볼까요? 💪';
+
+  const box=document.getElementById('itemResult');
+  if(!R.canCheck){
+    box.innerHTML=`<div class="note">발음 자동 확인은 <b>크롬</b>에서 열면 문항별로 ✅/🔁 표시돼요. 지금은 녹음을 저장했어요.</div>`;
+  }else{
+    box.innerHTML='';
+    R.per.forEach(p=>{ const ok=p.cov>=0.8; const row=document.createElement('div');
+      row.className='item'+(ok?' read':' warn');
+      const miss=(!ok&&p.missed.length)?`<div class="mini" style="margin-top:2px;">다시 확인: <b>${p.missed.slice(0,3).join(', ')}</b></div>`:'';
+      row.innerHTML=`<div class="num" style="background:${ok?'var(--leaf)':'var(--coral)'};color:#fff;">${p.no}</div>
+        <div class="tx">${esc(p.text)}${miss}</div><div class="mk">${ok?'✅':'🔁'}</div>`;
+      box.appendChild(row); });
+    if(R.per.every(p=>p.cov>=0.8)){ const ok=document.createElement('div');
+      ok.className='mini'; ok.style.cssText='text-align:center;margin-top:8px;color:var(--leaf-deep);';
+      ok.textContent='오독 없이 10문장 모두 또박또박! 🌟'; box.appendChild(ok); }
+  }
+  document.getElementById('ppGain').textContent='+'+R.gain;
+  document.getElementById('bonusTag').innerHTML=R.bonus>0?`<span class="bonus">100점 보너스 +${R.bonus} 🎁</span>`:'';
+  const into=DATA.pagePoints%CONFIG.stampGoal;
+  const shown=(into===0&&DATA.pagePoints>0)?CONFIG.stampGoal:into;
+  document.getElementById('prog50label').textContent=`${shown} / ${CONFIG.stampGoal}`;
+  setTimeout(()=>{ document.getElementById('prog50fill').style.width=(shown/CONFIG.stampGoal*100)+'%'; },120);
+
+  const player=document.getElementById('player');
+  document.getElementById('replayBtn').onclick=()=>{ if(rec.url){ player.src=rec.url; player.play(); } else toast('이 기기에선 재생을 못 해요'); };
+  show('result');
+  if(R.newStamp) setTimeout(()=>toast('🎉 책 도장 한 개 획득!'),700);
+}
+document.getElementById('doneBtn').onclick=()=>openStampbook();
+
+/* ---------- 도장첩 ---------- */
+function openStampbook(){
+  const stamps=Math.floor(DATA.pagePoints/CONFIG.stampGoal);
+  document.getElementById('sbName').textContent=`${DATA.profile.name}의 도장첩`;
+  document.getElementById('sbSub').textContent=`책 도장 ${stamps}개 · 페이지점수 ${DATA.pagePoints}점`;
+  const grid=document.getElementById('stampGrid'); grid.innerHTML='';
+  const slots=Math.max(6,Math.ceil((stamps+1)/3)*3);
+  for(let i=0;i<slots;i++){ const d=document.createElement('div');
+    if(i<stamps){ d.className='stamp got'+(i===stamps-1?' stamp-pop':'');
+      d.innerHTML=`<div class="ink"><div class="bk">📖</div><div class="lb">도장 ${i+1}</div></div>`; }
+    else{ d.className='stamp'; d.innerHTML='<span style="font-size:26px;opacity:.4;">📖</span>'; }
+    grid.appendChild(d); }
+  show('stampbook');
+}
+
+/* ================== 교사용: 스프레드시트 ================== */
+const HEADERS=['날짜','시각','학년','이름','제출','점수','틀린문항','틀린문장','틀린단어','받은페이지점수','누적페이지점수','도장수','또렷함(%)','자동확인'];
+function rowArr(r){ return [r.date,r.time,r.grade+'학년',r.name,'O',r.score,r.wrongItems||'',r.wrongText||'',r.wrongWords||'',r.gain,r.cum,r.stamps,r.clarity, r.checked?'O':'X']; }
+
+document.getElementById('gearBtn').onclick=()=>{ document.getElementById('sheetUrl').value=DATA.sheetUrl||''; document.getElementById('teacherModal').classList.add('show'); };
+document.getElementById('teacherClose').onclick=()=>document.getElementById('teacherModal').classList.remove('show');
+document.getElementById('editProfile').onclick=()=>{ document.getElementById('teacherModal').classList.remove('show');
+  document.getElementById('setName').value=DATA.profile?DATA.profile.name:''; pickedGrade=DATA.profile?DATA.profile.grade:1;
+  const gp=document.getElementById('gradePick'); [...gp.children].forEach((c,i)=>c.classList.toggle('sel',i+1===pickedGrade));
+  show('setup'); };
+document.getElementById('resetAll').onclick=async()=>{ if(confirm('모든 기록(점수·도장·제출)을 지울까요?')){ DATA={profile:DATA.profile,pagePoints:0,log:[],sheetUrl:DATA.sheetUrl}; await persist(); toast('기록을 지웠어요'); goHome(); document.getElementById('teacherModal').classList.remove('show'); } };
+
+document.getElementById('exportCsv').onclick=()=>{
+  if(!DATA.log.length){ toast('아직 제출 기록이 없어요'); return; }
+  const q=v=>{ const s=String(v==null?'':v); return /[",\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s; };
+  const lines=[HEADERS.map(q).join(',')];
+  [...DATA.log].reverse().forEach(r=>lines.push(rowArr(r).map(q).join(',')));
+  const csv='\uFEFF'+lines.join('\r\n');
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8'}); const url=URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=url; a.download=`읽기숙제_결과_${todayKey()}.csv`;
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url),1000);
+  toast('스프레드시트 파일을 내려받았어요');
+};
+document.getElementById('saveUrl').onclick=async()=>{ DATA.sheetUrl=document.getElementById('sheetUrl').value.trim(); await persist();
+  toast(DATA.sheetUrl?'구글 시트 연동 저장!':'연동을 해제했어요'); };
+function sendToSheet(r){
+  if(!DATA.sheetUrl) return;
+  try{ fetch(DATA.sheetUrl,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},
+    body:JSON.stringify(r)}); }catch(e){}
+}
+const APPS_SCRIPT=`function doPost(e){
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sh = ss.getSheetByName('읽기숙제') || ss.insertSheet('읽기숙제');
+  if (sh.getLastRow() === 0) {
+    sh.appendRow(['날짜','시각','학년','이름','제출','점수','틀린문항',
+      '틀린문장','틀린단어','받은점수','누적점수','도장수','또렷함(%)','자동확인']);
+  }
+  var d = JSON.parse(e.postData.contents);
+  sh.appendRow([d.date,d.time,d.grade+'학년',d.name,'O',d.score,d.wrongItems,
+    d.wrongText,d.wrongWords,d.gain,d.cum,d.stamps,d.clarity,d.checked?'O':'X']);
+  return ContentService.createTextOutput('ok');
+}`;
+document.getElementById('copyCode').onclick=()=>{ navigator.clipboard.writeText(APPS_SCRIPT).then(()=>toast('코드를 복사했어요')); };
+</script>
+</body>
+</html>
